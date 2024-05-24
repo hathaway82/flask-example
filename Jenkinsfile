@@ -12,23 +12,15 @@ node {
              app.push("latest")
          }
      }
-     stage('Scan') {
-           // download report template
-           sh 'curl -sfL https://gist.githubusercontent.com/vjayajv/2fc83aaa80656f976bb39b447cad362d/raw/74a09bf76f8017001312daf65cb83f1b4f4e10d1/report.tmpl > report.tmpl'
-           
-           // Scan all vuln levels
-           sh 'mkdir -p reports'
-           sh 'ls -R .'
-           sh 'grype 127.0.0.1/admin/flask-example:latest -o template -t report.tmpl --file reports/grype.html'
-           
-           publishHTML target : [
-               allowMissing: true,
-               alwaysLinkToLastBuild: true,
-               keepAll: true,
-               reportDir: 'reports',
-               reportFiles: 'grype.html',
-               reportName: 'Grype Scan',
-               reportTitles: 'Grype Scan'
-           ]
-       }
+    stage('Test') {
+        echo 'Testing...'
+        snykSecurity(
+          snykInstallation: 'snyk@latest', //<Your Snyk Installation Name>
+          snykTokenId: 'snyk-api-token', //<Your Snyk API Token ID>
+          monitorProjectOnBuild: false, // 모니터링 여부
+          failOnIssues: false, // 취약성 발견시 빌드 실패로 할지여부(기본 값: true)  실패시에도 보고서는 생성됨
+          // place other parameters here
+          additionalArguments: 'https://github.com/gasbugs/flask-example'
+        )
+    }
 }
